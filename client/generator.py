@@ -25,7 +25,7 @@ tcpCliSock.connect(ADDR)
 
 while True:
     rlist = list(numpy.random.random(size = sensorNum))
-    data = ' '.join(str(i) for i in rlist)
+    data = ','.join(str(i) for i in rlist)
     print(data)
     tcpCliSock.send(data.encode("UTF-8")) # 向服务器传输数据
     time.sleep(2)
