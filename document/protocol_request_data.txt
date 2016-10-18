@@ -9,6 +9,7 @@ Step 1. the Thinking algo initiate a TCP/IP connection to the server via port 89
 Step 2. Server --------> Think (from server to the think algo) a string "who"
 
 Step 3. Server <-------- Think a string "algo"
+		think.py will check the recieved the data. If it is "who", Think will send "algo" back. Or it will warning as "Connected to wrong server."
 
 Step 4. Identity verified! Start requesting data
         in order to request data
