@@ -1,0 +1,17 @@
+Request data from server to thinking algo 
+IP: 23.83.239.12 (temporary)
+Port: 8900
+
+protocol:
+
+Step 1. the Thinking algo initiate a TCP/IP connection to the server via port 8900
+Step 2. Server --------> Think (from server to the think algo) a string "who"
+Step 3. Server <-------- Think a string "algo"
+Step 4. Identity verified! Start requesting data
+        in order to request data
+        Server <--------- Think a string "request $number_of_records "nd_time(YYYY-mm-dd|HH:MM:SS:ffffff)" 
+        e.g. "request 100 2016-10-18|01:00:05:805297"
+Step 5. Server will return the records
+        Server ---------> Think a string with '\n' newline symbols
+        e.g. "2016-10-18|00:59:56:805297,s1=10.324,s2=5.421,s3=12.321,s4=121.321,s5=122.321,s6=132.321,s7=122.231,s8=231,321\n2016-10-18|00:59:56:90089,s1 = 10.324,s2 = 5.421,s3 = 12.321,s4 = 121.321,s5 = 122.321, s6 = 132.321, s7 = 122.231, s8 = 231,321\n....\n" in total 100 lines of records (maybe less)
+        Step 6. Terminate the connection by simply close the socket object
