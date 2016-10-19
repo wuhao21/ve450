@@ -37,7 +37,7 @@ Author: Lu Zening
 4. Once the connection is established, you will see data flows in.
 5. Done for the server part.
 
-    ![start_server](start_server.png)
+    ![start_server](./document/start_server.png)
 ---
 ## Inspect history sensor readings 
 1. On the server, go back to the command line interface.
@@ -45,6 +45,6 @@ Author: Lu Zening
 3. Run command `psql ve450` to access the database.
 4. Type in the SQL command `SELECT * FROM CNCLinear;`, then hit *Enter*
 5. All valid records will be printed on the terminal.
-    ![inspec](inspect_records.png)
+    ![inspec](./document/inspect_records.png)
 
 
