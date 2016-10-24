@@ -1,7 +1,8 @@
-num_for_each = 100;
+num_for_each = 1000;
 x = [-5:0.1:5];
 fout = fopen('raw_data.txt','w');
 for i = 1:num_for_each
+	i
 	%SIN 1
 	A = rand()+1;
 	b = rand()*pi;
