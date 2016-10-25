@@ -1,0 +1,10 @@
+sample_l = -50.0
+sample_r = 50.0
+sample_num = 200
+simu_level = 0
+data_num = 10000
+train_partion = 0.8
+test_k = 1 - train_partion
+supported_type = 4
+demo_num = 0		
+nb_epoch = 15
