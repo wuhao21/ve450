@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
 from keras.optimizers import SGD, Adam, RMSprop
 from keras.utils import np_utils
-import os
+import os, sys
 
 from demo_config import *
 
@@ -98,7 +98,15 @@ def data_generator(l,r,num_of_points,num_for_each,K,level):
 	x=np.linspace(l,r,num_of_points)
 	for i in range(num_for_each):
 		for t in range(supported_type):
-			X.append(signal_generator(x, t, level));
+			X.append(signal_generator(x, t, level))
+			'''
+			tmp = np.array(signal_generator(x, t, level))
+			#print(tmp.shape);
+			tmp = tmp.reshape((tmp.shape[0],1))
+			#print(tmp.shape);
+			#input('Enter to go on...')
+			X.append(tmp)
+			'''
 			Y.append(t);
 	thres = int(len(Y)*K)
 	x_test = np.array(X[:thres]);
@@ -135,7 +143,8 @@ if __name__=='__main__':
 	print('x_test shape:', X_test.shape)
 	print('y_test shape:', Y_test.shape)
 
-	input('Enter to go on...')
+	#input('Enter to go on...')
+	'''
 	model = Sequential()
 	model.add(Dense(64, input_dim=X_train.shape[1]))
 	model.add(Activation('tanh'))
@@ -145,6 +154,13 @@ if __name__=='__main__':
 	model.add(Dropout(0.2))
 	model.add(Dense(nb_classes))
 	model.add(Activation('softmax'))
+	'''
+	model = Sequential()
+	model.add(Dense(128, input_dim=X_train.shape[1], activation='relu'))
+	model.add(Dropout(0.5))
+	model.add(Dense(128, activation='relu'))
+	model.add(Dropout(0.5))
+	model.add(Dense(nb_classes, activation='softmax'))
 
 	model.summary()
 	input('Enter to go on...')
@@ -156,6 +172,7 @@ if __name__=='__main__':
 	model.fit(X_train, Y_train, nb_epoch=nb_epoch, verbose=1)
 	score = model.evaluate(X_test, Y_test, verbose=0)
 	print(score)
+	'''
 	input('Enter to go on...')
 	x = np.linspace(sample_l, sample_r, sample_num)
 
@@ -176,6 +193,7 @@ if __name__=='__main__':
 
 		print('[FACT: '+idx_to_type(t)+' PREDICT: '+vec_to_type(res)+'] CORRECT!' if idx_to_type(t)==vec_to_type(res) else 'WRONG!')
 		plt.show()
+	'''
 
 	
 
