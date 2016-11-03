@@ -20,7 +20,7 @@ def combine_byte(byte_hi, byte_lo): # combine two bytes to a 16-bit integer
 # global conn
 def init_db(): # initialize the database
     global conn
-    conn = psycopg2.connect(host="localhost", database="ve450")
+    conn = psycopg2.connect(host="localhost", database="ve450", user=db_owner, password=db_passwd)
     cursor = conn.cursor()
     try:
         cursor.execute("CREATE TABLE CNCLinear (time varchar, room_temp real, mot_temp real, current real, displacement real);")
