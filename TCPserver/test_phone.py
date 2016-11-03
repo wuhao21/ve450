@@ -7,6 +7,7 @@ from TCPconfig import *
 
 global isSIGINT
 def SIGINT_handler(signum, frame): # do some clean up when being Interrupted
+    global isSIGINT
     isSIGINT = True
     print("Process terminated!\n")
 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # s = socket.socket()  
     s.bind(address) 
     while(not isSIGINT):
-        while(True and (not isSIGINT)):
+        while(not isSIGINT):
             print('Waiting for connections...')
             try:
                 s.listen(5)  
@@ -28,10 +29,11 @@ if __name__ == '__main__':
             except:
                 print("Listen timeout\n")
             else:
+                print(['got connected from', addr])
+                time.sleep(0.5)
                 break
-        print(['got connected from', addr])
-        time.sleep(0.5)
-        while(True):
+        
+        while(not isSIGINT):
             try:
                 ra = ss.recv(512)
                 print(ra)
@@ -42,7 +44,11 @@ if __name__ == '__main__':
                 continue
             else:
                 ss.send(ra)
-    ss.close()
+    try:
+        ss.close()
+    except:
+        print("socket serverice not created\n")
+
     s.close()
     sys.exit()
     print("Bye\b")
