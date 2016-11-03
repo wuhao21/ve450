@@ -20,7 +20,7 @@ if __name__ == '__main__':
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # s = socket.socket()  
     s.bind(address) 
     while(not isSIGINT):
-        while(True and not isSIGINT):
+        while(True and (not isSIGINT)):
             print('Waiting for connections...')
             try:
                 s.listen(5)  
