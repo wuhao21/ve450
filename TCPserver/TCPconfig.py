@@ -1,4 +1,6 @@
-host_address = '127.0.0.1'
+#host_address = '127.0.0.1'
+#host_address = '192.168.1.2'
+host_address = '10.10.100.100'
 #host_address = '23.83.239.12'
 port_DTU = 8899
 port_brain = 8900
