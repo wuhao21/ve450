@@ -18,7 +18,7 @@ address = (host_address, port_phone)
 ra = []
 json_str = b'{"temperature":"30.03","displacement":"123.33","current":"321","wave":"triangle","temp_high":"0","current_high":"0"}\n'
 if __name__ == '__main__':
-    socket.setdefaulttimeout(timeout)
+    socket.setdefaulttimeout(10)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # s = socket.socket()  
     s.bind(address) 
     while(not isSIGINT):
@@ -33,31 +33,21 @@ if __name__ == '__main__':
                 print(['got connected from', addr])
                 time.sleep(0.5)
                 while(not isSIGINT):
-                  ss.sendall(bytearray(json_str))
+                  ss.send(bytearray(json_str))
                   print('sent\nWaiting for acknowledgemen\n');
                   try:
                     ra = ss.recv(512)
-                    print('ack\n')
                   except:
-                    print('Read timeout\n')
-                    ss.close()
-                    isValidConn = False
-                    break
+                    print('read timeout\n')
+                  else:
+                    if(ra != b''):
+                      print('ack\n')
+                    else:
+                      print('disconnected\n')
+                      break
                   time.sleep(2)
-                break
-        
-        while(not isSIGINT):
-            ss.sendall(bytearray(b'Hello Wang Chaoyi, greetings from my server.\n'))
-            try:
-                ra = ss.recv(512)
-                print(ra)
-            except:
-                print('Read timeout\n')
-                ss.close()
-                isValidConn = False
-                continue
-            else:
-                ss.send(ra)
+                
+
     try:
         ss.close()
     except:
