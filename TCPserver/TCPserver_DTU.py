@@ -20,10 +20,10 @@ def combine_byte(byte_hi, byte_lo): # combine two bytes to a 16-bit integer
 # global conn
 def init_db(): # initialize the database
     global conn
-    conn = psycopg2.connect(host="localhost", database="ve450")
+    conn = psycopg2.connect(host="localhost", database="ve450", user=db_owner, password=db_passwd)
     cursor = conn.cursor()
     try:
-        cursor.execute("CREATE TABLE CNCLinear (time varchar, room_temp real, mot_temp real, current real, displacement real);")
+        cursor.execute("CREATE TABLE CNCLinear (time varchar, room_temp real, mot_temp real, current real, displacement real, processing int);")
     except:
         print("Table CNCLinear exists, skipped\n")
     conn.commit()
@@ -33,9 +33,9 @@ def init_db(): # initialize the database
 def write_db(phy_data): # log the sensor readings in the database
     now = datetime.datetime.now()
     str_time = datetime.datetime.strftime(now, '%Y-%m-%d|%H:%M:%S:%f')
-    write_data = tuple([str_time] + phy_data[0:4])
+    write_data = tuple([str_time] + phy_data[0:5])
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO CNCLinear values (%s, %s, %s, %s, %s)", write_data)
+    cursor.execute("INSERT INTO CNCLinear values (%s, %s, %s, %s, %s, %s)", write_data)
     print('Wrote to the database', write_data)
     conn.commit()
     cursor.close()
@@ -44,16 +44,18 @@ def write_db(phy_data): # log the sensor readings in the database
 def convert_to_phy(reg_data): # convert the direct register readings to real physical quantities 
     phy_data = reg_data.copy()
     # sensor 1 room temperature (celsus)
-    phy_data[0] = phy_data[0] / 65535 * 200 + 0
+    phy_data[0] = (phy_data[0] - 4000) / (20000 - 4000) * 200 + 0
     # sensor 2 motor temerature (celsus)
-    phy_data[1] = phy_data[1] / 65535 * 200 + 0
+    phy_data[1] = (phy_data[1] - 4000) / (20000 - 4000) * 200 + 0
     # sensor 3 current (mA)
-    phy_data[2] = phy_data[2] / 65535 * 10000 + 0
+    phy_data[2] = (phy_data[2] - 4000) / (20000 - 4000) * 5000 + 0
     # sensor 4 displacement (mm)
-    phy_data[3] = phy_data[3] / 65535 * 200
+    phy_data[3] = (phy_data[3] - 4000) / (20000 - 4000) * 125 - 2
+    # sensor 5
+    phy_data[4] = int(phy_data[4] > 10000)
     return phy_data
 
-NUM_OF_SENSORS = 8 # maximum number of sensors
+NUM_OF_SENSORS = 5 # maximum number of sensors
 
 # MODBUS command, read register 1
 command_read = [
@@ -112,13 +114,37 @@ if __name__ == '__main__':
                 isValidConn = True
             else:
                 ss.close() # close the current connection and wait for the next one
-
+        reg_data = [0] * NUM_OF_SENSORS # store the recived sensor reading      
+        #time.sleep(0.1)                  
+        for i in range(0, NUM_OF_SENSORS):
+            if(isSIGINT):
+                break
+            print('Reading from sensor %d\n'%i)
+            ss.send(bytearray(command_read[i]))
+            try:
+                ra = ss.recv(512)      
+                print(list(map(lambda x:hex(x), ra)))    
+            except:
+                print('Read timeout\n')
+                isValidConn = False # terminate the connection
+                break 
+            reg_data[i] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535s
+        if(isValidConn): # store the readings in the database only if the connection was valid till end         
+            write_db(convert_to_phy(reg_data)) # write data to the database
         while(isValidConn and not isSIGINT):
-            time.sleep(0.5)
-            reg_data = [0] * NUM_OF_SENSORS # store the recived sensor reading
             for i in range(0, NUM_OF_SENSORS):
-                if(isSIGINT):
-                    break
+                print('Reading from sensor 3\n')
+                ss.send(bytearray(command_read[3]))
+                try:
+                    ra = ss.recv(512)      
+                    print(list(map(lambda x:hex(x), ra)))    
+                except:
+                    print('Read timeout\n')
+                    isValidConn = False # terminate the connection
+                    break 
+                reg_data[3] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535s
+                if(isValidConn): # store the readings in the database only if the connection was valid till end         
+                    write_db(convert_to_phy(reg_data)) # write data to the database
                 print('Reading from sensor %d\n'%i)
                 ss.send(bytearray(command_read[i]))
                 try:
@@ -128,9 +154,9 @@ if __name__ == '__main__':
                     print('Read timeout\n')
                     isValidConn = False # terminate the connection
                     break 
-                reg_data[i] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535
-            if(isValidConn): # store the readings in the database only if the connection was valid till end         
-                write_db(convert_to_phy(reg_data)) # write data to the database
+                reg_data[i] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535s
+                if(isValidConn): # store the readings in the database only if the connection was valid till end         
+                    write_db(convert_to_phy(reg_data)) # write data to the database
 
     ss.close()  
     s.close()

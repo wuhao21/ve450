@@ -1,6 +1,5 @@
 import psycopg2
-
-conn = psycopg2.connect(host="localhost", database="ve450")
+conn = psycopg2.connect(host="localhost", database="ve450", user="root", password="1234")
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE test (time varchar, sen1 real);")
 cursor.execute("INSERT INTO test values ('haha', 12.323);")
