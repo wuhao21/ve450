@@ -1,6 +1,6 @@
-Thinking Algorithm
+# Thinking Algorithm
 -------------
-#How to Build Keras Environment
+## How to Build Keras Environment
 * You should have installed proper version of python
 * Install pip using easy_install @$PYTHON_HOME/Scripts
 ```
@@ -19,7 +19,11 @@ vim ~/.keras/keras.json
 #change "backend":"tensorflow" to "backend":"theano"    
 ```
 * Import keras in python to check
-#Trainning Process
-![Flow Chart](./doc/Think_TrainingProcess.png)
-#Thinking Process
-![Flow Chart](./doc/Think_ThinkingProcess.png)
+
+-------------
+
+## Trainning Process
+* ![Flow Chart](./doc/Think_TrainingProcess.png)、
+
+## Thinking Process
+* ![Flow Chart](./doc/Think_ThinkingProcess.png)
