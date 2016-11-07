@@ -23,7 +23,7 @@ vim ~/.keras/keras.json
 -------------
 
 ## Trainning Process
-* ![Flow Chart](./doc/Think_TrainingProcess.png)、
+![Flow Chart](./doc/Think_TrainingProcess.png)
 
 ## Thinking Process
-* ![Flow Chart](./doc/Think_ThinkingProcess.png)
+![Flow Chart](./doc/Think_ThinkingProcess.png)
