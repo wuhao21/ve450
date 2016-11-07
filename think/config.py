@@ -1,9 +1,6 @@
-sample_l = -50.0
-sample_r = 50.0
-sample_num = 50
-simu_level = 2
-data_num = 2500
-train_partion = 0.8
-test_k = 1 - train_partion
-supported_type = 4
-nb_epoch = 20
+db_keys=('time','room_temp','mot_temp','current','displacement','processing')
+num_keys=len(db_keys)
+recog_types=('Sin','SmallSin','Linear')
+num_types=len(recog_types)
+window_size=5# seconds
+sample_num=window_size*20
