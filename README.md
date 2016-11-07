@@ -1,4 +1,4 @@
-# Machin Learning: Think and Speak
+# Machine Learning: Think and Speak
 ## 2016Fall Capstone Group 4
 ----
 * TCPclient
