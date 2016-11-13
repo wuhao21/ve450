@@ -51,7 +51,7 @@ def convert_to_phy(reg_data): # convert the direct register readings to real phy
     # sensor 3 current (mA)
     phy_data[2] = (reg_data[2] / 400 - 4) / (20 - 4) * 5000 + 0
     # sensor 4 displacement (mm)
-    phy_data[3] = (reg_data[3] / 400 - 4) / (20 - 4) * 200 - 1.9
+    phy_data[3] = (reg_data[3] / 400 - 4) / (20 - 4) * 125 - 1.9
     # sensor 5
     phy_data[4] = int(reg_data[5] > 2000)
     return phy_data
@@ -106,10 +106,12 @@ if __name__ == '__main__':
             # Judge if the connection is from DTU
             time.sleep(0.5)
             try:
+                print('sending verification request\n')
                 ss.sendall(mb.append_CRC(command_read))
             except:
                 print('Write error\n')
                 continue
+
             try:
                 ra = ss.recv(512)
                 print(list(map(lambda x:hex(x), ra)))
@@ -120,18 +122,19 @@ if __name__ == '__main__':
                 continue
             if(ra[0] == command_read[0]):
                 isValidConn = True
-            else:
-                ss.close() # close the current connection and wait for the next one
+                break 
+        time.sleep(0.5)
         ####################### Connection verified ###########################
+        print('connection verified!\n')
         reg_data = [0] * 8 # store sensor readings received
-        while(isSIGINT):      
-            time.sleep(0.05)                  
+        while(not isSIGINT):      
+            time.sleep(0.02)                  
             try:
                 print('sending read request\n')
                 ss.sendall(mb.append_CRC(command_read))
             except:
                 print('send failed!\n')
-                continue
+                break
 
             try:
                 ra = ss.recv(512)
@@ -145,7 +148,7 @@ if __name__ == '__main__':
             if(mb.isValid_CRC(ra)):
                 count_of_reg = ra[2] >> 1
                 for i in range(count_of_reg):
-                    reg_data[i] = mb.combine_byte(ra[i<<1 + 3], ra[i<<1 + 4])
+                    reg_data[i] = mb.combine_byte(ra[(i<<1) + 3], ra[(i<<1) + 4])
                 write_db(convert_to_phy(reg_data)) # write data to the database
                 print('written data:', reg_data)
             else:
