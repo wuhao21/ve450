@@ -1,6 +1,5 @@
 # the TCP server for the DTU serverices
 
-import serial
 import signal
 import sys
 import socket  
