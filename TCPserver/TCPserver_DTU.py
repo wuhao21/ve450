@@ -106,7 +106,7 @@ if __name__ == '__main__':
             # Judge if the connection is from DTU
             time.sleep(0.5)
             try:
-                ss.sendall(mb.encoder.append_CRC(command_read))
+                ss.sendall(mb.append_CRC(command_read))
             except:
                 print('Write error\n')
                 continue
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             time.sleep(0.05)                  
             try:
                 print('sending read request\n')
-                ss.sendall(mb.encoder.append_CRC(command_read))
+                ss.sendall(mb.append_CRC(command_read))
             except:
                 print('send failed!\n')
                 continue
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             print(list(map(lambda x:hex(x), ra)))
 
             # extract analog quantities
-            if(mb.encoder.isValid_CRC(ra)):
+            if(mb.isValid_CRC(ra)):
                 count_of_reg = ra[2] >> 1
                 for i in range(count_of_reg):
                     reg_data[i] = mb.combine_byte(ra[i<<1 + 3], ra[i<<1 + 4])
