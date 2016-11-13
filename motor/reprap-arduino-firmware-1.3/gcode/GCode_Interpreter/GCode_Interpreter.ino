@@ -23,15 +23,14 @@ int no_data = 0;
 
 void P1()
 {
-  digitalWrite(SIG_START, HIGH);
-  delay(1000);
-  
-  process_string(SET_HOME, )   
-  digitalWrite(SIG_START, LOW);
+ 
 }
-void P2();
-void P3();
-void P4();
+void P2()
+{}
+void P3()
+{}
+void P4()
+{}
 
 void setup()
 {
@@ -97,11 +96,19 @@ void loop()
              P4();
        }
     }
-    else if(comm[0] == 'G')
+    else if(comm[0] == 'S')
     {
       digitalWrite(SIG_START, HIGH);
-  		process_string(comm, serial_count);
+      Serial.println("ok");
+    }
+    else if(comm[0] == 'E')
+    {
       digitalWrite(SIG_START, LOW);
+      Serial.println("ok");
+    }
+    else if(comm[0] == 'G')
+    {
+  		process_string(comm, serial_count);
     }
 		//clear command.
 		init_process_string();
