@@ -6,15 +6,16 @@ import socket
 import time
 import psycopg2
 import datetime
+import easyModbus as mb
 from TCPconfig import *
+
+NUM_OF_SENSORS = 5 # maximum number of sensors
+
 
 def SIGINT_handler(signum, frame): # do some clean up when being Interrupted
     global isSIGINT
     isSIGINT = True
     print("Process terminated!\n")
-
-def combine_byte(byte_hi, byte_lo): # combine two bytes to a 16-bit integer
-    return (byte_hi << 8) | byte_lo
 
 ## database
 # global conn
@@ -23,7 +24,7 @@ def init_db(): # initialize the database
     conn = psycopg2.connect(host="localhost", database="ve450", user=db_owner, password=db_passwd)
     cursor = conn.cursor()
     try:
-        cursor.execute("CREATE TABLE CNCLinear (time varchar, room_temp real, mot_temp real, current real, displacement real, processing int);")
+        cursor.execute("CREATE TABLE CNCLinear (time varchar, mot_temp real, room_temp real, current real, displacement real, processing int);")
     except:
         print("Table CNCLinear exists, skipped\n")
     conn.commit()
@@ -42,32 +43,36 @@ def write_db(phy_data): # log the sensor readings in the database
     return # placeholder
 
 def convert_to_phy(reg_data): # convert the direct register readings to real physical quantities 
-    phy_data = reg_data.copy()
-    # sensor 1 room temperature (celsus)
-    phy_data[0] = (phy_data[0] - 4000) / (20000 - 4000) * 200 + 0
-    # sensor 2 motor temerature (celsus)
-    phy_data[1] = (phy_data[1] - 4000) / (20000 - 4000) * 200 + 0
+    phy_data = [0] * NUM_OF_SENSORS
+    # sensor 1 motor temperature (celsus)
+    phy_data[0] = (reg_data[0] / 400 - 4) / (20 - 4) * 200 + 0
+    # sensor 2 room temerature (celsus)
+    phy_data[1] = (reg_data[1] / 400 - 4) / (20 - 4) * 200 + 0
     # sensor 3 current (mA)
-    phy_data[2] = (phy_data[2] - 4000) / (20000 - 4000) * 5000 + 0
+    phy_data[2] = (reg_data[2] / 400 - 4) / (20 - 4) * 5000 + 0
     # sensor 4 displacement (mm)
-    phy_data[3] = (phy_data[3] - 4000) / (20000 - 4000) * 125 - 2
+    phy_data[3] = (reg_data[3] / 400 - 4) / (20 - 4) * 200 - 1.9
     # sensor 5
-    phy_data[4] = int(phy_data[4] > 10000)
+    phy_data[4] = int(reg_data[5] > 2000)
     return phy_data
 
-NUM_OF_SENSORS = 5 # maximum number of sensors
 
 # MODBUS command, read register 1
-command_read = [
-                [0xfe, 0x04, 0, 0, 0, 0x01, 0x25, 0xc5], # read register 1
-                [0xfe, 0x04, 0, 1, 0, 0x01, 0x74, 0x05], # read register 2
-                [0xfe, 0x04, 0, 2, 0, 0x01, 0x84, 0x05], # read register 3
-                [0xfe, 0x04, 0, 3, 0, 0x01, 0xd5, 0xc5], # read register 4
-                [0xfe, 0x04, 0, 4, 0, 0x01, 0x64, 0x04], # read register 5
-                [0xfe, 0x04, 0, 5, 0, 0x01, 0x35, 0xc4], # read register 6
-                [0xfe, 0x04, 0, 6, 0, 0x01, 0xc5, 0xc4], # read register 7
-                [0xfe, 0x04, 0, 7, 0, 0x01, 0x94, 0x04]] # read register 8
+# command_read = [
+#                 [0xfe, 0x04, 0, 0, 0, 0x01, 0x25, 0xc5], # read register 1
+#                 [0xfe, 0x04, 0, 1, 0, 0x01, 0x74, 0x05], # read register 2
+#                 [0xfe, 0x04, 0, 2, 0, 0x01, 0x84, 0x05], # read register 3
+#                 [0xfe, 0x04, 0, 3, 0, 0x01, 0xd5, 0xc5], # read register 4
+#                 [0xfe, 0x04, 0, 4, 0, 0x01, 0x64, 0x04], # read register 5
+#                 [0xfe, 0x04, 0, 5, 0, 0x01, 0x35, 0xc4], # read register 6
+#                 [0xfe, 0x04, 0, 6, 0, 0x01, 0xc5, 0xc4], # read register 7
+#                 [0xfe, 0x04, 0, 7, 0, 0x01, 0x94, 0x04]] # read register 8
 
+# the MODBUS command that reads analog in on IPAM3402 platform
+command_read = bytearray([0xaa, 0x04, 0x00, 0x40, 0x00, 0x08]) # No CRC appended!
+# A typical response
+# [ADDR, FUNC, COUNT , REG0, REG0, REG1, REG1, ..., REGN, REGN, CRC, CRC]
+# REG0: MOT_TEMP, REG1: ROOM_TEMP, REG2: CURRENT, REG3: DISPLACEMENT, REG4: VOID, REG5: IN_PROCESS
 # The adress of the server, as well as the port number
 address = (host_address, port_DTU)
 
@@ -87,7 +92,7 @@ if __name__ == '__main__':
         isValidConn = False
         while(not isValidConn and not isSIGINT):
             # Initiate a TCP server process
-            while(True):
+            while(not isSIGINT):
                 print('Waiting for connections...')
                 try:
                     s.listen(5)  
@@ -100,7 +105,11 @@ if __name__ == '__main__':
 
             # Judge if the connection is from DTU
             time.sleep(0.5)
-            ss.send(bytearray(command_read[0]))
+            try:
+                ss.send(bytearray(command_read))
+            except:
+                print('Write error\n')
+                continue
             try:
                 ra = ss.recv(512)
                 print(list(map(lambda x:hex(x), ra)))
@@ -109,56 +118,44 @@ if __name__ == '__main__':
                 ss.close()
                 isValidConn = False
                 continue
-
-            if(ra[0] == 0xfe):
+            if(ra[0] == command_read[0]):
                 isValidConn = True
             else:
                 ss.close() # close the current connection and wait for the next one
-        reg_data = [0] * NUM_OF_SENSORS # store the recived sensor reading      
-        #time.sleep(0.1)                  
-        for i in range(0, NUM_OF_SENSORS):
-            if(isSIGINT):
-                break
-            print('Reading from sensor %d\n'%i)
-            ss.send(bytearray(command_read[i]))
+        ####################### Connection verified ###########################
+        reg_data = [0] * 8 # store sensor readings received
+        while(isSIGINT):      
+            time.sleep(0.05)                  
             try:
-                ra = ss.recv(512)      
-                print(list(map(lambda x:hex(x), ra)))    
+                print('sending read request\n')
+                ss.sendall(mb.encoder.append_CRC(command_read))
             except:
-                print('Read timeout\n')
-                isValidConn = False # terminate the connection
-                break 
-            reg_data[i] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535s
-        if(isValidConn): # store the readings in the database only if the connection was valid till end         
-            write_db(convert_to_phy(reg_data)) # write data to the database
-        while(isValidConn and not isSIGINT):
-            for i in range(0, NUM_OF_SENSORS):
-                print('Reading from sensor 3\n')
-                ss.send(bytearray(command_read[3]))
-                try:
-                    ra = ss.recv(512)      
-                    print(list(map(lambda x:hex(x), ra)))    
-                except:
-                    print('Read timeout\n')
-                    isValidConn = False # terminate the connection
-                    break 
-                reg_data[3] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535s
-                if(isValidConn): # store the readings in the database only if the connection was valid till end         
-                    write_db(convert_to_phy(reg_data)) # write data to the database
-                print('Reading from sensor %d\n'%i)
-                ss.send(bytearray(command_read[i]))
-                try:
-                    ra = ss.recv(512)      
-                    print(list(map(lambda x:hex(x), ra)))    
-                except:
-                    print('Read timeout\n')
-                    isValidConn = False # terminate the connection
-                    break 
-                reg_data[i] = combine_byte(ra[3], ra[4]) # the range of value is from 0 to 65535s
-                if(isValidConn): # store the readings in the database only if the connection was valid till end         
-                    write_db(convert_to_phy(reg_data)) # write data to the database
+                print('send failed!\n')
+                continue
 
-    ss.close()  
+            try:
+                ra = ss.recv(512)
+            except:
+                print('read timeout\n')
+                continue
+            
+            print(list(map(lambda x:hex(x), ra)))
+
+            # extract analog quantities
+            if(mb.encoder.isValid_CRC(ra)):
+                count_of_reg = ra[2] >> 1
+                for i in range(count_of_reg):
+                    reg_data[i] = mb.combine_byte(ra[i<<1 + 3], ra[i<<1 + 4])
+                write_db(convert_to_phy(reg_data)) # write data to the database
+                print('written data:', reg_data)
+            else:
+                print("CRC verification mismatch\n")
+                continue
+
+    try:
+        ss.close()
+    except:  
+        print("connection already closed\n")
     s.close()
     conn.close() 
     sys.exit() 

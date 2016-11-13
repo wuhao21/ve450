@@ -12,6 +12,27 @@ char comm[COMMAND_SIZE];
 byte serial_count;
 int no_data = 0;
 
+#define SET_HOME "G92"
+#define GO_HOME "G28"
+#define SET_MM "G21"
+#define SET_ABS "G90"
+#define DRAW_CIRC_LARGE "G2 X0 Y0 I50"
+#define DRAW_CIRC_SMALL "G2 X50 Y50 I20"
+#define GO_MID "G1 X50 Y50 F1500"
+#define GO_END "G1 X100 Y100 F1500"
+
+void P1()
+{
+  digitalWrite(SIG_START, HIGH);
+  delay(1000);
+  
+  process_string(SET_HOME, )   
+  digitalWrite(SIG_START, LOW);
+}
+void P2();
+void P3();
+void P4();
+
 void setup()
 {
 	//Do startup stuff here
@@ -59,9 +80,29 @@ void loop()
 	if (serial_count && (c == '\n' || no_data > 100))
 	{
 		//process our command!
-    digitalWrite(SIG_START, HIGH);
-		process_string(comm, serial_count);
-    digitalWrite(SIG_START, LOW);
+    if(comm[0] == 'P')
+    {
+      switch(comm[1])
+      {
+         case '1':
+             P1();
+             break;
+         case '2':
+             P2();
+             break;
+         case '3':
+             P3();
+             break;
+         case '4':
+             P4();
+       }
+    }
+    else if(comm[0] == 'G')
+    {
+      digitalWrite(SIG_START, HIGH);
+  		process_string(comm, serial_count);
+      digitalWrite(SIG_START, LOW);
+    }
 		//clear command.
 		init_process_string();
 	}
