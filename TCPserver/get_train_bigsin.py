@@ -35,9 +35,9 @@ def init_db(): # initialize the database
 def write_db(phy_data): # log the sensor readings in the database
     now = datetime.datetime.now()
     str_time = datetime.datetime.strftime(now, '%Y-%m-%d|%H:%M:%S:%f')
-    write_data = tuple([str_time] + phy_data[0:5])
+    write_data = tuple([name_table] + [str_time] + phy_data[0:5])
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO CNCLinear values (%s, %s, %s, %s, %s, %s)", write_data)
+    cursor.execute("INSERT INTO %s values (%s, %s, %s, %s, %s, %s)", write_data)
     print('Wrote to the database', write_data)
     conn.commit()
     cursor.close()
