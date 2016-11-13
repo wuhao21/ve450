@@ -106,7 +106,7 @@ if __name__ == '__main__':
             # Judge if the connection is from DTU
             time.sleep(0.5)
             try:
-                ss.send(bytearray(command_read))
+                ss.sendall(mb.encoder.append_CRC(command_read))
             except:
                 print('Write error\n')
                 continue
