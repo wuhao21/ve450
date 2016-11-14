@@ -1,5 +1,4 @@
 import numpy as np
-#import random, math
 import os, sys, psycopg2
 import datetime
 
@@ -30,17 +29,29 @@ def vec_to_type(res):
 			ans=x
 	return idx_to_type(ans)
 
+def election(votes):
+    if sum(votes) < least_votes:
+        return -1
+    tmp = 0
+    ans = -1
+    for x in range(len(votes)):
+        if votes[x]>tmp:
+            tmp=votes[x]
+            ans=x
+    return ans
+
 def string_to_datetime(TIME):
     return datetime.datetime.strptime(TIME, '%Y-%m-%d|%H:%M:%S:%f')
 
 def get_time():
     return datetime.datetime.strftime(datetime.datetime.now(), 'Y-m-%d|%H:%M:%S:%f')
 
-def read_from_db(dbname, user, password, content): # read the database
+def read_from_db(dbname, user, password, table="cnclinear", content="*", condition=""): # read the database
     conn = psycopg2.connect(host="localhost", dbname=dbname, user=user, password=password) #database configuration
     cursor = conn.cursor()
+    records = []
     try:
-        cursor.execute("SELECT %s FROM cnclinear "%content) #table name
+        cursor.execute("SELECT %s FROM %s %s"%(content, table, condition)) #table name
         records = cursor.fetchall()
     except:
         print("Table is not find\n")
@@ -80,6 +91,33 @@ def sliding(data, TYPE): # data should be (key, data) pair
         while (l>=0 and (string_to_datetime(data[r][0])-string_to_datetime(data[l][0])).total_seconds() < window_size): l=l-1
         if (l<0): break;
         res.append(data_to_feature(data[l:r]))
-        y.append(TYPE)
+        if TYPE != -1:
+            y.append(TYPE)
         r = r - 1
-    return res, y
+    if TYPE != -1:
+        return res, y
+    else:
+        return res
+
+def temp_alarm(room_temp, mot_temp):
+    if (mot_temp > room_temp and mot_temp-room_temp > temp_diff_limit):
+        return True
+    else:
+        if (mot_temp > temp_upper_limit):
+            return True
+        else:
+            return False
+
+def current_alarm(current):
+    if (current > current_upper_limit):
+        return True
+    else:
+        return False
+def pool_add(pool, point): # pool should be list of (key, data) pair
+    enough = False
+    while (len(pool)>0 and (string_to_datetime(point[0])-string_to_datetime(pool[0][0])).total_seconds() > window_size):
+        pool.pop(0)
+        enough = True
+    pool.extend(point)
+    return enough
+
