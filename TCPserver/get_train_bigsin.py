@@ -10,7 +10,7 @@ import easyModbus as mb
 from TCPconfig import *
 
 NUM_OF_SENSORS = 5 # maximum number of sensors
-
+name_table = ''
 
 def SIGINT_handler(signum, frame): # do some clean up when being Interrupted
     global isSIGINT
@@ -24,9 +24,10 @@ def init_db(): # initialize the database
     conn = psycopg2.connect(host="localhost", database="ve450", user=db_owner, password=db_passwd)
     cursor = conn.cursor()
     try:
-        cursor.execute("CREATE TABLE CNCLinear (time varchar, mot_temp real, room_temp real, current real, displacement real, processing int);")
+        cursor.execute("CREATE TABLE %s (time varchar, mot_temp real, room_temp real, current real, displacement real, processing int);"%name_table)
+        print("Table %s created\n"%name_table)
     except:
-        print("Table CNCLinear exists, skipped\n")
+        print("Table %s exists, skipped\n"%name_table)
     conn.commit()
     cursor.close()
     return # placeholder
@@ -36,7 +37,8 @@ def write_db(phy_data): # log the sensor readings in the database
     str_time = datetime.datetime.strftime(now, '%Y-%m-%d|%H:%M:%S:%f')
     write_data = tuple([str_time] + phy_data[0:5])
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO CNCLinear values (%s, %s, %s, %s, %s, %s)", write_data)
+    str_table = 'INSERT INTO %s '%name_table
+    cursor.execute(str_table + "values (%s, %s, %s, %s, %s, %s)", write_data)
     print('Wrote to the database', write_data)
     conn.commit()
     cursor.close()
@@ -84,6 +86,7 @@ isSIGINT = False
 ##                                    Main body                                      ## 
 #######################################################################################
 if __name__ == '__main__':
+    name_table = input('name of table: ')
     socket.setdefaulttimeout(timeout)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # s = socket.socket()  
     s.bind(address) 
