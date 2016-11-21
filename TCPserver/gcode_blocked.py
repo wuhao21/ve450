@@ -6,7 +6,7 @@ lst_gcode = [
     'G92', # set origin
     'G90', # absolute location
     'START',
-    'G2 X0 Y0 I50 F2000', # draw a big circle
+    'G01 X10000 F3000'
     'G28', # go to the origin
     'END'
 ]
