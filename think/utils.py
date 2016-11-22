@@ -70,7 +70,7 @@ def read_from_db(dbname, user, password, table="cnclinear", content="*", conditi
 
 def write_db(write_data):
     conn = psycopg2.connect(host="localhost", dbname="ve450", user="root", password="1234")
-    cursor = conn.cursor
+    cursor = conn.cursor()
     try:
         cursor.execute("INSERT INTO CNCLinear_result values (%s, %s, %s, %s, %s, %s, %s, %s,%s)", write_data)
         print('Wrote to the database', write_data)
@@ -78,8 +78,8 @@ def write_db(write_data):
         print("Insert CNCLinear_result Faild")
     conn.commit()
     cursor.close()
-    return 
-    
+    return
+
 
 
 def data_clean(raw_data): # raw_data should be (key, data) pair
