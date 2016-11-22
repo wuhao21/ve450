@@ -34,6 +34,7 @@ votes = []
 flag = False
 print("%s|loading model..."%get_time())
 model = load_model('brain.h5')
+model_block = load_model('block.h5')
 while True:
     if (last_timestamp == None):
         pool = read_from_db("ve450","root","1234","cnclinear","*","WHERE time >'%s'"%get_1minago())
@@ -61,27 +62,32 @@ while True:
         is_processing = data_point[5]
 
 
-
-
         #print(last_timestamp, data_point)
         last_timestamp = data_point[key_to_idx("time")]
         winner = -1;
         if data_point[key_to_idx("processing")]:
-            if pool_add(pool, data_point):
+            if pool_add(pool, data_point, window_size):
 #enough length to predict
                 flag = True
                 #print("pool length is %d"%len(pool))
                 X=[]
-                X.append(data_to_feature(pool, idx=key_to_idx("displacement")))
+                X.append(data_to_feature(raw_data=pool, idx=key_to_idx("displacement"), sw=0))
                 X=np.array(X)
                 #print(X.shape)
                 res = model.predict(X)
                 #votes[type_to_idx(vec_to_type(res))] += 1
                 #winner = election(votes)
                 winner = vec_to_idx(res)
-                if winner != -1:
-                    print("%s|It Should be %s"%(get_time(),idx_to_type(winner)))
-                    #print(X)
+                X=[]
+                X.append(data_to_feature(raw_data=pool, idx=key_to_idx("displacement"), sw=1))
+                X=np.array(X)
+                res = model_block.predict(X)
+                ifblock = vec_to_idx(res)
+                if ifblock == 1:
+                    print("%s|Blocking...")
+                else:
+                    if winner != -1:
+                        print("%s|It Should be %s"%(get_time(),idx_to_type(winner)))
             else:
                 if (not flag):
                     print("%s|Too less information!!"%get_time())
@@ -113,8 +119,3 @@ while True:
         if(wave != "unknown"):
             write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
             write_db(write_data)
-
-
-
-
-

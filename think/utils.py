@@ -91,31 +91,40 @@ def data_clean(raw_data): # raw_data should be (key, data) pair
         last_line = line
     return clean_data
 
-def data_to_feature(raw_data, idx=1):
+def data_to_feature(raw_data, idx, sw):
     xp = []
     fp = []
     #print(raw_data[0])
     for line in raw_data:
         #print(line)
-        xp.append((string_to_datetime(line[0])-string_to_datetime(raw_data[0][0])).total_seconds())
-        fp.append(float(line[idx]))
-    return np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
+        if (sw == 0 or (sw == 1 and (string_to_datetime(raw_data[-1][0])-string_to_datetime(line[0])).total_seconds() <= block_window)):
+            xp.append((string_to_datetime(line[0])-string_to_datetime(raw_data[0][0])).total_seconds())
+            fp.append(float(line[idx]))
+    x = np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
+    if sw == 0:
+        return x
+    else:
+        x = x - np.mean(x)
+        return x
 
 def sliding(data, TYPE): # data should be (key, data) pair
     l = r = 0
     res = []
     y = []
     while (l<=r and r<len(data)):
-        while (r<len(data) and (string_to_datetime(data[r][0])-string_to_datetime(data[l][0])).total_seconds() < window_size): r=r+1
-        if (r>=len(data)): break;
-        res.append(data_to_feature(data[l:r]))
-        y.append(TYPE)
+        while (r<len(data) and (string_to_datetime(data[r][0])-string_to_datetime(data[l][0])).total_seconds() < win): r=r+1
+        if (r>=len(data)):
+            break;
+        res.append(data_to_feature(data[l:r], 1, 0))
+        if TYPE != -1:
+            y.append(TYPE)
         l = l + 1
     l = r = len(data) - 1
     while (l<=r and l>=0):
-        while (l>=0 and (string_to_datetime(data[r][0])-string_to_datetime(data[l][0])).total_seconds() < window_size): l=l-1
-        if (l<0): break;
-        res.append(data_to_feature(data[l:r]))
+        while (l>=0 and (string_to_datetime(data[r][0])-string_to_datetime(data[l][0])).total_seconds() < win): l=l-1
+        if (l<0):
+            break;
+        res.append(data_to_feature(data[l:r], 1, 0))
         if TYPE != -1:
             y.append(TYPE)
         r = r - 1
