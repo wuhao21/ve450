@@ -23,7 +23,10 @@ vim ~/.keras/keras.json
 -------------
 
 ## Trainning Process
+### Type Recognizing
 ![Flow Chart](./doc/Think_TrainingProcess.png)
+### Cut Blocking Detection
+![Flow Chart](./doc/Block_TrainingProcess.png)
 
 ## Thinking Process
 ![Flow Chart](./doc/Think_ThinkingProcess.png)
