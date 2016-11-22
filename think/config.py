@@ -4,6 +4,7 @@ recog_types=('Sin','Linear')
 num_types=len(recog_types)
 window_size=5# seconds
 sample_num=window_size*20
+wait_interval=0.5
 
 least_votes=10
 #fit parameters

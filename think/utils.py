@@ -1,12 +1,13 @@
 import numpy as np
 import os, sys, psycopg2
 import datetime
+from datetime import timedelta
 
 from config import *
 
 def idx_to_type(i):
     if (i < num_types):
-        return recog_types(i)
+        return recog_types[i]
     else:
         return 'ERROR'
 
@@ -44,7 +45,10 @@ def string_to_datetime(TIME):
     return datetime.datetime.strptime(TIME, '%Y-%m-%d|%H:%M:%S:%f')
 
 def get_time():
-    return datetime.datetime.strftime(datetime.datetime.now(), 'Y-m-%d|%H:%M:%S:%f')
+    return datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d|%H:%M:%S:%f')
+
+def get_1minago():
+    return datetime.datetime.strftime(datetime.datetime.now() - timedelta(minutes=1), '%Y-%m-%d|%H:%M:%S:%f')
 
 def read_from_db(dbname, user, password, table="cnclinear", content="*", condition=""): # read the database
     conn = psycopg2.connect(host="localhost", dbname=dbname, user=user, password=password) #database configuration
@@ -71,7 +75,9 @@ def data_clean(raw_data): # raw_data should be (key, data) pair
 def data_to_feature(raw_data):
     xp = []
     fp = []
+    #print(raw_data[0])
     for line in raw_data:
+        #print(line)
         xp.append((string_to_datetime(line[0])-string_to_datetime(raw_data[0][0])).total_seconds())
         fp.append(float(line[1]))
     return np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
@@ -118,6 +124,6 @@ def pool_add(pool, point): # pool should be list of (key, data) pair
     while (len(pool)>0 and (string_to_datetime(point[0])-string_to_datetime(pool[0][0])).total_seconds() > window_size):
         pool.pop(0)
         enough = True
-    pool.extend(point)
+    pool.append(point)
     return enough
 
