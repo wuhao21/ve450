@@ -6,6 +6,8 @@ from datetime import timedelta
 from config import *
 
 def idx_to_type(i):
+    if (i == -1):
+        return "unknown"
     if (i < num_types):
         return recog_types[i]
     else:
@@ -65,6 +67,20 @@ def read_from_db(dbname, user, password, table="cnclinear", content="*", conditi
     conn.commit()
     cursor.close()
     return records
+
+def write_db(write_data):
+    conn = psycopg2.connect(host="localhost", dbname="ve450", user="root", password="1234")
+    cursor = conn.cursor
+    try:
+        cursor.execute("INSERT INTO CNCLinear_result values (%s, %s, %s, %s, %s, %s, %s, %s,%s)", write_data)
+        print('Wrote to the database', write_data)
+    except:
+        print("Insert CNCLinear_result Faild")
+    conn.commit()
+    cursor.close()
+    return 
+    
+
 
 def data_clean(raw_data): # raw_data should be (key, data) pair
     clean_data = []
