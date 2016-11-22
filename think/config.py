@@ -18,3 +18,7 @@ temp_upper_limit = 30
 
 #current_alarn
 current_upper_limit = 200
+
+#cut_blocking
+block_window=1#seconds
+block_sample_num=block_window*20
