@@ -53,9 +53,9 @@ if __name__ == '__main__':
                  time.sleep(0.5)
                  while(not isSIGINT):
                    read_db();
-                   json_str = '{"temperature":"'+str(records[-1][1])+'","displacement":"'+str(records[-1][4])+'","current":"'+ str(records[-1][3])+'","wave":"'+str(records[-1][5])+ '","temp_high":"'+str(records[-1][6])+'","current_high":"'+str(records[-1][7])+'","block":"'+str(records[-1][7])+'"process":"digging"}\n'
+                   json_str = '{"time":"'+str(records[-1][0])+'","temperature":"'+str(records[-1][1])+'","displacement":"'+str(records[-1][4])+'","current":"'+ str(records[-1][3])+'","wave":"'+str(records[-1][5])+ '","temp_high":"'+str(records[-1][6])+'","current_high":"'+str(records[-1][7])+'","block":"'+str(records[-1][7])+'","process":"digging"}\n'
                    print(json_str)
-                   ss.send(bytearray(json_str))
+                   ss.send(json_str.encode('utf-8'))
 
                    print('sent\nWaiting for acknowledgemen\n');
                    try:
@@ -68,7 +68,7 @@ if __name__ == '__main__':
                      else:
                        print('disconnected\n')
                        break
-                   time.sleep(2)
+                   time.sleep(0.2)
 
 
      try:

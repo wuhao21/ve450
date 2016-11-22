@@ -27,6 +27,8 @@ except:
 conn.commit()
 cursor.close()
 
+last_wave="not working"
+
 last_timestamp = None
 pool = []
 tmp_data = []
@@ -59,7 +61,6 @@ while True:
         current = data_point[3]
         displacement = data_point[4]
         is_processing = data_point[5]
-
 
 
 
@@ -98,8 +99,15 @@ while True:
             flag = False
         if(is_processing == 0):
             wave = "not working"
+            last_wave = wave
         else:
             wave = idx_to_type(winner)
+            if (wave != "unknown"):
+                last_wave = wave
+        if(wave == "unknown"):
+            wave = last_wave
+
+
         if(temp_alarm(room_temp,mot_temp)==True):
             temp_high = 1
         else:
@@ -110,9 +118,8 @@ while True:
             current_high = 0
         is_cutblocking= 0
 
-        if(wave != "unknown"):
-            write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
-            write_db(write_data)
+        write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
+        write_db(write_data)
 
 
 
