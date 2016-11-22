@@ -18,6 +18,15 @@ signal.signal(signal.SIGINT, quit)
 signal.signal(signal.SIGTERM, quit)
 
 print("%s|initialization..."%get_time())
+conn = psycopg2.connect(host="localhost", dbname="ve450", user='root', password='1234') #database configuration
+cursor = conn.cursor()
+try:
+    cursor.execute("CREATE TABLE CNCLinear_result (time varchar, mot_temp real, room_temp real, current real, displacement real, wave varchar, temp_high int, current_high int, is_cutblocking int);")
+except:
+    print("Table CNCLinear_result exists, skipped\n")
+conn.commit()
+cursor.close()
+
 last_timestamp = None
 pool = []
 tmp_data = []
@@ -43,8 +52,20 @@ while True:
             time.sleep(wait_interval)
             continue
         data_point = tmp_data[-1]
+
+        curr_time = data_point[0]
+        mot_temp = data_point[1]
+        room_temp = data_point[2]
+        current = data_point[3]
+        displacement = data_point[4]
+        is_processing = data_point[5]
+
+
+
+
         #print(last_timestamp, data_point)
         last_timestamp = data_point[key_to_idx("time")]
+        winner = -1;
         if data_point[key_to_idx("processing")]:
             if pool_add(pool, data_point):
 #enough length to predict
@@ -75,6 +96,25 @@ while True:
             pool=[]
             tmp_data=[]
             flag = False
-            continue
+        if(is_processing == 0):
+            wave = "not working"
+        else:
+            wave = idx_to_type(winner)
+        if(temp_alarm(room_temp,mot_temp)==True):
+            temp_high = 1
+        else:
+            temp_high = 0
+        if(current_alarm(current)==True):
+            current_high = 1
+        else:
+            current_high = 0
+        is_cutblocking= 0
+
+        if(wave != "unknown"):
+            write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
+            write_db(write_data)
+
+
+
 
 
