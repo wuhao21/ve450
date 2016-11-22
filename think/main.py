@@ -22,6 +22,7 @@ last_timestamp = None
 pool = []
 tmp_data = []
 votes = []
+flag = False
 print("%s|loading model..."%get_time())
 model = load_model('brain.h5')
 while True:
@@ -47,6 +48,7 @@ while True:
         if data_point[key_to_idx("processing")]:
             if pool_add(pool, data_point):
 #enough length to predict
+                flag = True
                 #print("pool length is %d"%len(pool))
                 X=[]
                 X.append(data_to_feature(pool, idx=key_to_idx("displacement")))
@@ -55,14 +57,15 @@ while True:
                 res = model.predict(X)
                 #votes[type_to_idx(vec_to_type(res))] += 1
                 #winner = election(votes)
-                winner = vec_to_type(res)
-                if winner == -1:
-                    print("%s|Too less points... Still voting..."%get_time())
-                else:
-                    print("%s|It Should be %s"%(get_time(),winner))
+                winner = vec_to_idx(res)
+                if winner != -1:
+                    print("%s|It Should be %s"%(get_time(),idx_to_type(winner)))
                     #print(X)
             else:
-                print("%s|Too less information!!"%get_time())
+                if (not flag):
+                    print("%s|Too less information!!"%get_time())
+                else:
+                    continue
 #too less info
         else:
             if (len(pool)!=0):
@@ -71,6 +74,7 @@ while True:
                 votes[i]=0
             pool=[]
             tmp_data=[]
+            flag = False
             continue
 
 
