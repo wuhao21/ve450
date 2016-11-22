@@ -21,14 +21,17 @@ def key_to_idx(key):
         if (db_keys[i]==key): return i
     return -1
 
-def vec_to_type(res):
-	tmp = 0
-	ans = -1
-	for x in range(res.shape[1]):
-		if res[0,x]>tmp:
-			tmp=res[0,x]
-			ans=x
-	return idx_to_type(ans)
+def vec_to_idx(res):
+    tmp = 0
+    ans = -1
+    for x in range(res.shape[1]):
+        if res[0,x]>tmp:
+            tmp=res[0,x]
+            ans=x
+    if (tmp > confidence_thres):
+        return ans
+    else:
+        return -1
 
 def election(votes):
     if sum(votes) < least_votes:

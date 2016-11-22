@@ -5,6 +5,7 @@ num_types=len(recog_types)
 window_size=3# seconds
 sample_num=window_size*10
 wait_interval=0.5
+confidence_thres=0.99
 
 least_votes=10
 #fit parameters
