@@ -2,8 +2,8 @@ db_keys=('time','room_temp','mot_temp','current','displacement','processing')
 num_keys=len(db_keys)
 recog_types=('Sin','Linear')
 num_types=len(recog_types)
-window_size=5# seconds
-sample_num=window_size*20
+window_size=3# seconds
+sample_num=window_size*10
 wait_interval=0.5
 
 least_votes=10
