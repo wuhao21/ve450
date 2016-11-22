@@ -29,7 +29,7 @@ while True:
         pool = read_from_db("ve450","root","1234","cnclinear","*","WHERE time >'%s'"%get_1minago())
         if (len(pool) == 0):
             #print(pool)
-            print("%s|Database is empty... Wait for %.2f sec"%(get_time,window_size))
+            print("%s|Database is empty... Wait for %.2f sec"%(get_time(),window_size))
             time.sleep(window_size)
             continue
         last_timestamp = pool[-1][key_to_idx("time")]
