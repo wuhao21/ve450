@@ -32,27 +32,15 @@ pool = []
 tmp_data = []
 votes = []
 flag = False
-lst_wave = "not working"
 print("%s|loading model..."%get_time())
-model = load_model('brain.h5')
-model1 = Sequential()
-model1.add(Dense(64, input_dim=block_sample_num))
-model1.add(Activation('tanh'))
-model1.add(Dropout(0.2))
-model1.add(Dense(64))
-model1.add(Activation('tanh'))
-model1.add(Dropout(0.2))
-model1.add(Dense(nb_classes))
-model1.add(Activation('sigmoid'))
-#model1.compile(loss='binary_crossentropy', optimizer='rmsprop',metrics=['accuracy'])
-model1.load_weights('block_weights.h5')
+model = load_model('block.h5')
 while True:
     if (last_timestamp == None):
         pool = read_from_db("ve450","root","1234","cnclinear","*","WHERE time >'%s'"%get_1minago())
         if (len(pool) == 0):
             #print(pool)
-            print("%s|Database is empty... Wait for %.2f sec"%(get_time(),window_size))
-            time.sleep(window_size)
+            print("%s|Database is empty... Wait for %.2f sec"%(get_time(),block_window))
+            time.sleep(block_window)
             continue
         last_timestamp = pool[-1][key_to_idx("time")]
         for i in range(nb_classes):
@@ -76,28 +64,21 @@ while True:
         #print(last_timestamp, data_point)
         last_timestamp = data_point[key_to_idx("time")]
         winner = -1;
-        ifb = -1;
         if data_point[key_to_idx("processing")]:
-            if pool_add(pool, data_point, window_size):
+            if pool_add(pool, data_point, block_window):
 #enough length to predict
                 flag = True
                 #print("pool length is %d"%len(pool))
                 X=[]
-                X.append(data_to_feature(raw_data=pool, idx=key_to_idx("displacement"), sw=0))
-                X=np.array(X)
-                res = model.predict(X)
-                winner = vec_to_idx(res, 0.99)
-                X=[]
                 X.append(data_to_feature(raw_data=pool, idx=key_to_idx("displacement"), sw=1))
                 X=np.array(X)
-                res = model1.predict(X)
-                ifb = vec_to_idx(res, 0.9)
-                if ifb == 0:
+                #print(X.shape)
+                res = model.predict(X)
+                #votes[type_to_idx(vec_to_type(res))] += 1
+                #winner = election(votes)
+                ifb = vec_to_idx(res)
+                if ifb == 1:
                     print("%s|Blocking..."%get_time())
-                else:
-                    if winner != -1:
-                        print("%s|It Should be %s"%(get_time(),idx_to_type(winner)))
-                        lst_wave = idx_to_type(winner)
             else:
                 if (not flag):
                     print("%s|Too less information!!"%get_time())
@@ -112,10 +93,8 @@ while True:
             pool=[]
             tmp_data=[]
             flag = False
-            lst_wave = "unknown"
         if(is_processing == 0):
             wave = "not working"
-            lst_wave = wave
         else:
             wave = idx_to_type(winner)
         if(temp_alarm(room_temp,mot_temp)==True):
@@ -126,8 +105,8 @@ while True:
             current_high = 1
         else:
             current_high = 0
-        is_cutblocking=(-1 if ifb==-1 else 1-ifb)
-        if(wave == "unknown"):
-            wave = lst_wave
-        write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
-        write_db(write_data)
+        is_cutblocking=
+
+        if(wave != "unknown"):
+            write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
+            write_db(write_data)

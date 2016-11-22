@@ -19,7 +19,7 @@ def data_to_featureb(raw_data, idx=1):
         #print(line)
         xp.append((string_to_datetime(line[0])-string_to_datetime(raw_data[0][0])).total_seconds())
         fp.append(float(line[idx]))
-    x = np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
+    x = np.interp(np.linspace(0, xp[-1], block_sample_num), xp, fp)
     x = x - np.mean(x)
     return x
 
@@ -47,7 +47,7 @@ def slidingb(data, TYPE): # data should be (key, data) pair
         return res
 
 
-
+'''
 #normal 0
 records = read_from_db("ve450","root","1234","bigsin","time,displacement")
 flags = read_from_db("ve450","root","1234","bigsin","processing")
@@ -91,7 +91,7 @@ while l<=r and r<len(flags):
             l = r
     else:
         r = r + 1
-
+'''
 records = read_from_db("ve450","root","1234","block","time,displacement")
 flags = read_from_db("ve450","root","1234","block","processing")
 print(len(records))
@@ -142,7 +142,7 @@ train_x = np.array(train_x)
 train_y = np.array(train_y)
 train_y = np_utils.to_categorical(train_y, nb_classes)
 model = Sequential()
-model.add(Dense(64, input_dim=sample_num))
+model.add(Dense(64, input_dim=block_sample_num))
 model.add(Activation('tanh'))
 model.add(Dropout(0.2))
 model.add(Dense(64))
@@ -155,4 +155,4 @@ model.compile(loss='binary_crossentropy', optimizer='rmsprop',metrics=['accuracy
 print('start training...')
 model.fit(train_x, train_y, nb_epoch=nb_epoch, validation_split=validation_split, shuffle=True)
 model.save('block.h5')
-
+model.save_weights('block_weights.h5')

@@ -23,14 +23,14 @@ def key_to_idx(key):
         if (db_keys[i]==key): return i
     return -1
 
-def vec_to_idx(res):
+def vec_to_idx(res, ct):
     tmp = 0
     ans = -1
     for x in range(res.shape[1]):
         if res[0,x]>tmp:
             tmp=res[0,x]
             ans=x
-    if (tmp > confidence_thres):
+    if (tmp > ct):
         return ans
     else:
         return -1
@@ -100,10 +100,11 @@ def data_to_feature(raw_data, idx, sw):
         if (sw == 0 or (sw == 1 and (string_to_datetime(raw_data[-1][0])-string_to_datetime(line[0])).total_seconds() <= block_window)):
             xp.append((string_to_datetime(line[0])-string_to_datetime(raw_data[0][0])).total_seconds())
             fp.append(float(line[idx]))
-    x = np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
     if sw == 0:
+        x = np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
         return x
     else:
+        x = np.interp(np.linspace(0, xp[-1], block_sample_num), xp, fp)
         x = x - np.mean(x)
         return x
 
@@ -147,9 +148,9 @@ def current_alarm(current):
         return True
     else:
         return False
-def pool_add(pool, point): # pool should be list of (key, data) pair
+def pool_add(pool, point, win): # pool should be list of (key, data) pair
     enough = False
-    while (len(pool)>0 and (string_to_datetime(point[0])-string_to_datetime(pool[0][0])).total_seconds() > window_size):
+    while (len(pool)>0 and (string_to_datetime(point[0])-string_to_datetime(pool[0][0])).total_seconds() > win):
         pool.pop(0)
         enough = True
     pool.append(point)
