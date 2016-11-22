@@ -1,7 +1,8 @@
 from utils import *
-
+import signal
+import time
 import numpy as np
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers.core import Dense, Dropout, Activation
 from keras.optimizers import SGD, Adam, RMSprop
 from keras.utils import np_utils
@@ -21,18 +22,26 @@ pool = []
 tmp_data = []
 votes = []
 print("loading model...")
-model = load_model('my_model.h5')
+model = load_model('brain.h5')
 print("working...")
 while True:
     if (last_timestamp == None):
         pool = read_from_db("ve450","root","1234","cnclinear")
-        if (pool == None): continue
+        if (len(pool) == 0):
+            print("Database is empty... Wait for %d sec"%window_size)
+            time.sleep(window_size)
+            continue
         last_timestamp = pool[-1][key_to_idx("time")]
         for i in range(nb_classes):
             votes.append(0)
     else:
-        tmp_data = read_from_db("ve450","root","1234","cnclinear","*","WHERE time>%s"last_timestamp)
-        if (tmp_data == None): continue
+        tmp_data = read_from_db("ve450","root","1234","cnclinear","*","WHERE time>%s"%last_timestamp)
+        if (len(tmp_data) == 0):
+            print("No new data... Wait for %d sec"%window_size)
+            time.sleep(window_size)
+            continue
+        print(last_timestamp)
+        print(len(tmp_data))
         data_point = tmp_data[-1]
         if data_point[key_to_idx("processing")]:
             last_timestamp = data_point[key_to_idx("time")]
@@ -43,14 +52,14 @@ while True:
                 votes[type_to_idx(vec_to_type(res))] += 1
                 winner = election(votes)
                 if winner == -1:
-                    print("TOO LESS POINTS... WAITING...")
+                    print("Too less points... Still voting...")
                 else:
-                    print("IT SHOULD BE %s"%recog_types(winner))
+                    print("It Should be %s"%recog_types(winner))
             else:
-                print("TOO LESS INFO!!")
+                print("Too less information!!")
 #too less info
         else:
-            print("NOT WORKING!!")
+            print("Not working...")
             for i in range(nb_classes):
                 votes[i]=0
             last_timestamp = None

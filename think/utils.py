@@ -12,12 +12,12 @@ def idx_to_type(i):
 
 def type_to_idx(name):
 	for i in range(num_types):
-		if (recog_types(i)==name): return i
+		if (recog_types[i]==name): return i
 	return -1
 
 def key_to_idx(key):
     for i in range(num_keys):
-        if (db_keys(i)==name): return i
+        if (db_keys[i]==key): return i
     return -1
 
 def vec_to_type(res):
