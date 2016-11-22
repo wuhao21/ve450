@@ -72,14 +72,14 @@ def data_clean(raw_data): # raw_data should be (key, data) pair
         last_line = line
     return clean_data
 
-def data_to_feature(raw_data):
+def data_to_feature(raw_data, idx=1):
     xp = []
     fp = []
     #print(raw_data[0])
     for line in raw_data:
         #print(line)
         xp.append((string_to_datetime(line[0])-string_to_datetime(raw_data[0][0])).total_seconds())
-        fp.append(float(line[1]))
+        fp.append(float(line[idx]))
     return np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
 
 def sliding(data, TYPE): # data should be (key, data) pair

@@ -43,30 +43,34 @@ while True:
             continue
         data_point = tmp_data[-1]
         #print(last_timestamp, data_point)
+        last_timestamp = data_point[key_to_idx("time")]
         if data_point[key_to_idx("processing")]:
-            last_timestamp = data_point[key_to_idx("time")]
             if pool_add(pool, data_point):
 #enough length to predict
                 #print("pool length is %d"%len(pool))
                 X=[]
-                X.append(data_to_feature(pool))
+                X.append(data_to_feature(pool, idx=key_to_idx("displacement")))
                 X=np.array(X)
                 #print(X.shape)
                 res = model.predict(X)
-                votes[type_to_idx(vec_to_type(res))] += 1
-                winner = election(votes)
+                #votes[type_to_idx(vec_to_type(res))] += 1
+                #winner = election(votes)
+                winner = vec_to_type(res)
                 if winner == -1:
                     print("%s|Too less points... Still voting..."%get_time())
                 else:
-                    print("%s|It Should be %s"%(get_time(),recog_types[winner]))
+                    print("%s|It Should be %s"%(get_time(),winner))
+                    #print(X)
             else:
                 print("%s|Too less information!!"%get_time())
 #too less info
         else:
-            print("%s|Not working..."%get_time())
+            if (len(pool)!=0):
+                print("%s|Not working..."%get_time())
             for i in range(nb_classes):
                 votes[i]=0
-            last_timestamp = None
+            pool=[]
+            tmp_data=[]
             continue
 
 
