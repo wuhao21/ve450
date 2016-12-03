@@ -72,8 +72,8 @@ def write_db(write_data):
     conn = psycopg2.connect(host="localhost", dbname="ve450", user="root", password="1234")
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO CNCLinear_result values (%s, %s, %s, %s, %s, %s, %s, %s,%s)", write_data)
-        print('Wrote to the database', write_data)
+        cursor.execute("INSERT INTO CNCLinear_result values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", write_data)
+        #print('Wrote to the database', write_data)
     except:
         print("Insert CNCLinear_result Faild")
     conn.commit()
@@ -104,9 +104,15 @@ def data_to_feature(raw_data, idx, sw):
         x = np.interp(np.linspace(0, xp[-1], sample_num), xp, fp)
         return x
     else:
-        x = np.interp(np.linspace(0, xp[-1], block_sample_num), xp, fp)
+        #x = np.interp(np.linspace(0, xp[-1], block_sample_num), xp, fp)
+        #x = x - np.mean(x)
+        x = np.array(fp)
         x = x - np.mean(x)
-        return x
+        xp = [0,np.var(x)]
+        for idx in range(len(x)):
+            if (idx > 0 and x[idx]*x[idx-1]<0):
+                xp[0] += 1
+        return xp
 
 def sliding(data, TYPE): # data should be (key, data) pair
     l = r = 0

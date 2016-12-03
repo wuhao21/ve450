@@ -1,8 +1,8 @@
 #host_address = '127.0.0.1'
 #host_address = '192.168.1.2'
 #host_address = '10.10.100.101'
-#host_address = '23.83.239.12'
-#host_address = '202.120.46.229'
+#host_adess = '23.83.239.12'
+#host_ad#dress = '202.120.46.229'
 host_address = '10.0.2.15'
 port_DTU = 8899
 port_brain = 8900

@@ -1,4 +1,5 @@
 from utils import *
+from train_blocking import data_to_featureb
 import signal
 import time
 import numpy as np
@@ -21,18 +22,18 @@ print("%s|initialization..."%get_time())
 conn = psycopg2.connect(host="localhost", dbname="ve450", user='root', password='1234') #database configuration
 cursor = conn.cursor()
 try:
-    cursor.execute("CREATE TABLE CNCLinear_result (time varchar, mot_temp real, room_temp real, current real, displacement real, wave varchar, temp_high int, current_high int, is_cutblocking int);")
+    cursor.execute("CREATE TABLE CNCLinear_result (time varchar, mot_temp real, room_temp real, current real, displacement real, wave varchar, temp_high int, current_high int, is_cutblocking int, item_count int);")
 except:
     print("Table CNCLinear_result exists, skipped\n")
 conn.commit()
 cursor.close()
 
 last_wave="not working"
-
+item_count = 0
 last_timestamp = None
 pool = []
 tmp_data = []
-votes = []
+
 flag = False
 lst_wave = "not working"
 print("%s|loading model..."%get_time())
@@ -57,12 +58,10 @@ while True:
             time.sleep(window_size)
             continue
         last_timestamp = pool[-1][key_to_idx("time")]
-        for i in range(nb_classes):
-            votes.append(0)
     else:
         tmp_data = read_from_db("ve450","root","1234","cnclinear","*","WHERE time>'%s'"%last_timestamp)
         if (len(tmp_data) == 0):
-            print("%s|No new data... Wait for %.2f sec"%(get_time(),wait_interval))
+            #print("%s|No new data... Wait for %.2f sec"%(get_time(),wait_interval))
             time.sleep(wait_interval)
             continue
         data_point = tmp_data[-1]
@@ -92,27 +91,41 @@ while True:
                 X=[]
                 X.append(data_to_feature(raw_data=pool, idx=key_to_idx("displacement"), sw=1))
                 X=np.array(X)
-                res = model1.predict(X)
-                ifb = vec_to_idx(res, 0.9)
-                if ifb == 0:
+                #res = model1.predict(X)
+                #ifb = vec_to_idx(res, 0)
+                ifb = 1 if (X[0,0]>=3 and X[0,1]>=0.3 and X[0,1]<=13) or (X[0,0]>3 and X[0,1]>1) else 0
+                print(X)
+                if ifb == 1:
                     print("%s|Blocking..."%get_time())
                 else:
                     if winner != -1:
                         print("%s|It Should be %s"%(get_time(),idx_to_type(winner)))
                         lst_wave = idx_to_type(winner)
             else:
-                if (not flag):
-                    print("%s|Too less information!!"%get_time())
+                X=[]
+                X.append(data_to_feature(raw_data=pool, idx=key_to_idx("displacement"), sw=1))
+                X=np.array(X)
+                #res = model1.predict(X)
+                #ifb = vec_to_idx(res, 0)
+                ifb = 1 if (X[0,0]>=3 and X[0,1]>=0.3 and X[0,1]<=13) or (X[0,0]>3 and X[0,1]>1) else 0
+                print(X)
+                if ifb == 1:
+                    print("%s|Blocking..."%get_time())
                 else:
-                    continue
+                    if (not flag):
+                        #print("%s|Too less information!!"%get_time())
+                        a = 1
+                    else:
+                        continue
 #too less info
         else:
-            if (len(pool)!=0):
-                print("%s|Not working..."%get_time())
-            for i in range(nb_classes):
-                votes[i]=0
+            #if (len(pool)!=0):
+                #print("%s|Not working..."%get_time())
             pool=[]
             tmp_data=[]
+            if flag:
+                item_count += 1
+                #print("%s|Current item is finished"%get_time())
             flag = False
             lst_wave = "unknown"
         if(is_processing == 0):
@@ -134,9 +147,9 @@ while True:
             current_high = 1
         else:
             current_high = 0
-        is_cutblocking=(-1 if ifb==-1 else 1-ifb)
+        is_cutblocking=ifb
         if(wave == "unknown"):
             wave = lst_wave
-        write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking)
+        write_data=(curr_time, mot_temp,room_temp,current,displacement,wave,temp_high,current_high,is_cutblocking,item_count)
         write_db(write_data)
 

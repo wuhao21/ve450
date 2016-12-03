@@ -9,12 +9,19 @@ import datetime
 import easyModbus as mb
 from TCPconfig import *
 
+global s, ss
+
 NUM_OF_SENSORS = 5 # maximum number of sensors
 name_table = ''
 
 def SIGINT_handler(signum, frame): # do some clean up when being Interrupted
     global isSIGINT
     isSIGINT = True
+    try:
+      ss.close()
+    except:
+      print("socket not connected\n")
+    s.close()
     print("Process terminated!\n")
 
 ## database
