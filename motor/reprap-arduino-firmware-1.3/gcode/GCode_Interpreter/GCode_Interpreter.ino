@@ -36,7 +36,7 @@ void setup()
 {
 	//Do startup stuff here
 	Serial.begin(19200);
-	Serial.println("start");
+	//Serial.println("start");
 	
 	//other initialization.
 	init_process_string();
@@ -46,10 +46,18 @@ void setup()
   // Process On signal
   pinMode(SIG_START, OUTPUT);
   digitalWrite(SIG_START, LOW);
+
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
+
+  process_string("G21\n",4); //Set to MM unit
+  delay(5000); // wait for 10 secs
+  Serial.read(); // clear read buffer
 }
 
 void loop()
 {
+  
 	char c;
 	
 	//keep it hot!
@@ -62,7 +70,7 @@ void loop()
 		no_data = 0;
 		
 		//newlines are ends of commands.
-		if (c != '\n')
+		if (c != '\n' || c != 0)
 		{
 			comm[serial_count] = c;
 			serial_count++;
