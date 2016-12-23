@@ -11,7 +11,9 @@ Author: Lu Zening
 3. Create a PostgreSQL user named *root*
     ```
     su - postgres
-    createuser -d root
+    psql
+    create user root with superuser;
+    \q
     exit
     ```
 4. Create a database titled *ve450*

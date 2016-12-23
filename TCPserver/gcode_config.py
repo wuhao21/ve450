@@ -1,1 +1,0 @@
-comm_port = 'COM4'

@@ -19,8 +19,18 @@ vim ~/.keras/keras.json
 #change "backend":"tensorflow" to "backend":"theano"    
 ```
 * Import keras in python to check
+in terminal, type in the following commands
+```
+python3
+>>> import keras
+```
+Setting up is done if there is error-free.
 
 -------------
+
+## How to start the thinking algorithms
+
+Open up a terminal, type `python3 main.py`. Done.
 
 ## Trainning Process
 ### Type Recognizing
